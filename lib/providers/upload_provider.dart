@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import '../services/api_service.dart';
 import '../models/dock_status.dart';
 
@@ -142,31 +143,22 @@ class UploadProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      Directory? downloadsDir;
-      if (Platform.isAndroid) {
-        downloadsDir = await getExternalStorageDirectory();
-        // Adjust for standard Android downloads path if internal getExternalStorageDirectory goes to app specific folders
-        String newPath = "";
-        List<String> folders = downloadsDir!.path.split("/");
-        for (int x = 1; x < folders.length; x++) {
-          String folder = folders[x];
-          if (folder != "Android") {
-            newPath += "/" + folder;
-          } else {
-            break;
-          }
-        }
-        newPath = newPath + "/Download";
-        downloadsDir = Directory(newPath);
+      // 1. Download to temporary cache first (no permissions needed)
+      final Directory tempDir = await getTemporaryDirectory();
+      final String tempPath = "\${tempDir.path}/\$filename";
+      
+      await _apiService.downloadFile(filename, tempPath);
+
+      // 2. Ask user where to save the file using the native Android picker
+      final params = SaveFileDialogParams(sourceFilePath: tempPath, fileName: filename);
+      final filePath = await FlutterFileDialog.saveFile(params: params);
+
+      if (filePath != null) {
+        _errorMessage = null; 
+        // Success
       } else {
-        downloadsDir = await getApplicationDocumentsDirectory();
+        _errorMessage = "Download canceled by user.";
       }
-
-      final String savePath = "\${downloadsDir.path}/\$filename";
-      await _apiService.downloadFile(filename, savePath);
-
-      _errorMessage = null; // Clear any old errors
-      // Displaying success toast or similar ideally happens on UI, but we signal done here
     } catch (e) {
       _errorMessage = "Failed to download \$filename: \$e";
     } finally {

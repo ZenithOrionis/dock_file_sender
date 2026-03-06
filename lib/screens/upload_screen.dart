@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../providers/upload_provider.dart';
 import '../widgets/file_card.dart';
+import '../utils/constants.dart';
 
 class UploadScreen extends StatelessWidget {
   const UploadScreen({Key? key}) : super(key: key);
@@ -175,7 +175,7 @@ class UploadScreen extends StatelessWidget {
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(4),
                                       child: Image.network(
-                                        '\${ApiConstants.dockDownload}\$filename',
+                                        '${ApiConstants.dockDownload}$filename',
                                         width: 48,
                                         height: 48,
                                         fit: BoxFit.cover,
@@ -192,25 +192,19 @@ class UploadScreen extends StatelessWidget {
                                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                                         : const Icon(Icons.download, color: Colors.blue),
                                     onPressed: (isDownloading || isDeleting) ? null : () async {
-                                      // On Android 13+ (API 33+), WRITE_EXTERNAL_STORAGE is obsolete and automatically granted for the Downloads folder.
-                                      // We attempt to check permission but gracefully fallback and try the download anyway if it fails,
-                                      // because the path_provider 'Downloads' directory often works without explicit permission on modern Android.
-                                      var status = await Permission.storage.status;
-                                      if (!status.isGranted) {
-                                        status = await Permission.storage.request();
-                                      }
-
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloading \$filename...')));
+                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloading $filename...')));
                                       }
                                       
                                       await provider.downloadFromServer(filename);
                                       
                                       if (context.mounted) {
-                                        if (provider.errorMessage != null && provider.errorMessage!.contains('Permission denied')) {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Storage permission is required to download files.')));
-                                        } else if (provider.errorMessage == null || !provider.errorMessage!.contains("Failed to download")) {
-                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloaded \$filename to Downloads folder!')));
+                                        if (provider.errorMessage != null && provider.errorMessage!.contains('canceled')) {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download canceled.')));
+                                        } else if (provider.errorMessage != null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.errorMessage!)));
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved $filename successfully!')));
                                         }
                                       }
                                     },

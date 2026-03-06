@@ -22,7 +22,7 @@ class ApiService {
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Upload failed with status: \${response.statusCode}, \${response.body}');
+      throw Exception('Upload failed with status: ${response.statusCode}, ${response.body}');
     }
   }
 
@@ -35,28 +35,28 @@ class ApiService {
       final jsonMap = jsonDecode(response.body);
       return DockStatus.fromJson(jsonMap);
     } else {
-      throw Exception('Failed to fetch dock status: \${response.statusCode}');
+      throw Exception('Failed to fetch dock status: ${response.statusCode}');
     }
   }
 
   Future<void> downloadFile(String filename, String savePath) async {
-    final uri = Uri.parse('\${ApiConstants.dockDownload}\$filename');
+    final uri = Uri.parse('${ApiConstants.dockDownload}$filename');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       final file = File(savePath);
       await file.writeAsBytes(response.bodyBytes);
     } else {
-      throw Exception('Failed to download file: \${response.statusCode}');
+      throw Exception('Failed to download file: ${response.statusCode}');
     }
   }
 
   Future<void> deleteFile(String filename) async {
-    final uri = Uri.parse('\${ApiConstants.dockDelete}\$filename');
+    final uri = Uri.parse('${ApiConstants.dockDelete}$filename');
     final response = await http.delete(uri);
 
     if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Failed to delete file: \${response.statusCode}');
+      throw Exception('Failed to delete file: ${response.statusCode}');
     }
   }
 }
