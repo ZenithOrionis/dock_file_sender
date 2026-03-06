@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../services/api_service.dart';
 import '../models/dock_status.dart';
 
@@ -24,6 +25,12 @@ class UploadProvider with ChangeNotifier {
 
   List<String> _dockFiles = [];
   List<String> get dockFiles => _dockFiles;
+
+  String? _downloadingFile;
+  String? get downloadingFile => _downloadingFile;
+
+  String? _deletingFile;
+  String? get deletingFile => _deletingFile;
 
   Timer? _pollingTimer;
 
@@ -128,6 +135,60 @@ class UploadProvider with ChangeNotifier {
   void _setState(UploadState newState) {
     _state = newState;
     notifyListeners();
+  }
+
+  Future<void> downloadFromServer(String filename) async {
+    _downloadingFile = filename;
+    notifyListeners();
+
+    try {
+      Directory? downloadsDir;
+      if (Platform.isAndroid) {
+        downloadsDir = await getExternalStorageDirectory();
+        // Adjust for standard Android downloads path if internal getExternalStorageDirectory goes to app specific folders
+        String newPath = "";
+        List<String> folders = downloadsDir!.path.split("/");
+        for (int x = 1; x < folders.length; x++) {
+          String folder = folders[x];
+          if (folder != "Android") {
+            newPath += "/" + folder;
+          } else {
+            break;
+          }
+        }
+        newPath = newPath + "/Download";
+        downloadsDir = Directory(newPath);
+      } else {
+        downloadsDir = await getApplicationDocumentsDirectory();
+      }
+
+      final String savePath = "\${downloadsDir.path}/\$filename";
+      await _apiService.downloadFile(filename, savePath);
+
+      _errorMessage = null; // Clear any old errors
+      // Displaying success toast or similar ideally happens on UI, but we signal done here
+    } catch (e) {
+      _errorMessage = "Failed to download \$filename: \$e";
+    } finally {
+      _downloadingFile = null;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteFromServer(String filename) async {
+    _deletingFile = filename;
+    notifyListeners();
+
+    try {
+      await _apiService.deleteFile(filename);
+      _errorMessage = null;
+      await _fetchDockStatus(); // Refresh the list
+    } catch (e) {
+      _errorMessage = "Failed to delete \$filename: \$e";
+    } finally {
+      _deletingFile = null;
+      notifyListeners();
+    }
   }
 
   @override

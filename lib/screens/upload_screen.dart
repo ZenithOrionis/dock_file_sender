@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../providers/upload_provider.dart';
 import '../widgets/file_card.dart';
 
@@ -157,9 +158,74 @@ class UploadScreen extends StatelessWidget {
                     : ListView.builder(
                         itemCount: provider.dockFiles.length,
                         itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: const Icon(Icons.insert_drive_file_outlined),
-                            title: Text(provider.dockFiles[index]),
+                          final filename = provider.dockFiles[index];
+                          final isDownloading = provider.downloadingFile == filename;
+                          final isDeleting = provider.deletingFile == filename;
+
+                          final hasImageExtension = filename.toLowerCase().endsWith('.jpg') || 
+                                                    filename.toLowerCase().endsWith('.jpeg') || 
+                                                    filename.toLowerCase().endsWith('.png') || 
+                                                    filename.toLowerCase().endsWith('.gif') || 
+                                                    filename.toLowerCase().endsWith('.webp');
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              leading: hasImageExtension
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: Image.network(
+                                        '\${ApiConstants.dockDownload}\$filename',
+                                        width: 48,
+                                        height: 48,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 36),
+                                      ),
+                                    )
+                                  : const Icon(Icons.insert_drive_file_outlined, size: 36),
+                              title: Text(filename, overflow: TextOverflow.ellipsis),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: isDownloading 
+                                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                                        : const Icon(Icons.download, color: Colors.blue),
+                                    onPressed: (isDownloading || isDeleting) ? null : () async {
+                                      // On Android 13+ (API 33+), WRITE_EXTERNAL_STORAGE is obsolete and automatically granted for the Downloads folder.
+                                      // We attempt to check permission but gracefully fallback and try the download anyway if it fails,
+                                      // because the path_provider 'Downloads' directory often works without explicit permission on modern Android.
+                                      var status = await Permission.storage.status;
+                                      if (!status.isGranted) {
+                                        status = await Permission.storage.request();
+                                      }
+
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloading \$filename...')));
+                                      }
+                                      
+                                      await provider.downloadFromServer(filename);
+                                      
+                                      if (context.mounted) {
+                                        if (provider.errorMessage != null && provider.errorMessage!.contains('Permission denied')) {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Storage permission is required to download files.')));
+                                        } else if (provider.errorMessage == null || !provider.errorMessage!.contains("Failed to download")) {
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Downloaded \$filename to Downloads folder!')));
+                                        }
+                                      }
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: isDeleting
+                                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                                        : const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: (isDownloading || isDeleting) ? null : () {
+                                      provider.deleteFromServer(filename);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
                           );
                         },
                       ),

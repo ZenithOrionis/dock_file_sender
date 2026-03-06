@@ -38,4 +38,26 @@ class ApiService {
       throw Exception('Failed to fetch dock status: \${response.statusCode}');
     }
   }
+
+  Future<void> downloadFile(String filename, String savePath) async {
+    final uri = Uri.parse('\${ApiConstants.dockDownload}\$filename');
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final file = File(savePath);
+      await file.writeAsBytes(response.bodyBytes);
+    } else {
+      throw Exception('Failed to download file: \${response.statusCode}');
+    }
+  }
+
+  Future<void> deleteFile(String filename) async {
+    final uri = Uri.parse('\${ApiConstants.dockDelete}\$filename');
+    final response = await http.delete(uri);
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete file: \${response.statusCode}');
+    }
+  }
 }
+
