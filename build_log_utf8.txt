@@ -1,0 +1,24 @@
+Running Gradle task 'assembleRelease'...                        
+java.lang.IllegalArgumentException: Cannot find JAR 'kotlin-compiler-embeddable-2.0.21.jar' required by module 'gradle-declarative-dsl-core' using classpath or distribution directory 'C:\Users\asuka\.gradle\wrapper\dists\gradle-8.14-all\c2qonpi39x1mddn7hk5gh9iqj\gradle-8.14'
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.findDependencyJar(DefaultModuleRegistry.java:358)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.findDependencyJars(DefaultModuleRegistry.java:219)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.module(DefaultModuleRegistry.java:209)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.loadOptionalModule(DefaultModuleRegistry.java:189)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.loadModule(DefaultModuleRegistry.java:173)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.getModule(DefaultModuleRegistry.java:153)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.getModules(DefaultModuleRegistry.java:227)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry.access$100(DefaultModuleRegistry.java:49)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry$DefaultModule.getRequiredModules(DefaultModuleRegistry.java:393)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry$DefaultModule.collectRequiredModules(DefaultModuleRegistry.java:431)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry$DefaultModule.getAllRequiredModules(DefaultModuleRegistry.java:414)
+	at org.gradle.api.internal.classpath.DefaultModuleRegistry$DefaultModule.getAllRequiredModulesClasspath(DefaultModuleRegistry.java:421)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.runNoExit(ProcessBootstrap.java:56)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.run(ProcessBootstrap.java:39)
+	at org.gradle.launcher.GradleMain.main(GradleMain.java:31)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at org.gradle.wrapper.BootstrapMainStarter.start(BootstrapMainStarter.java:30)
+	at org.gradle.wrapper.WrapperExecutor.execute(WrapperExecutor.java:129)
+	at org.gradle.wrapper.GradleWrapperMain.main(GradleWrapperMain.java:61)
+Running Gradle task 'assembleRelease'...                         1,346ms
+Gradle task assembleRelease failed with exit code 1
