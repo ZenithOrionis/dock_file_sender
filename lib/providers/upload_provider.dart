@@ -145,7 +145,7 @@ class UploadProvider with ChangeNotifier {
     try {
       // 1. Download to temporary cache first (no permissions needed)
       final Directory tempDir = await getTemporaryDirectory();
-      final String tempPath = "\${tempDir.path}/\$filename";
+      final String tempPath = "${tempDir.path}/$filename";
       
       await _apiService.downloadFile(filename, tempPath);
 
@@ -160,7 +160,7 @@ class UploadProvider with ChangeNotifier {
         _errorMessage = "Download canceled by user.";
       }
     } catch (e) {
-      _errorMessage = "Failed to download \$filename: \$e";
+      _errorMessage = "Failed to download $filename: $e";
     } finally {
       _downloadingFile = null;
       notifyListeners();
@@ -176,7 +176,7 @@ class UploadProvider with ChangeNotifier {
       _errorMessage = null;
       await _fetchDockStatus(); // Refresh the list
     } catch (e) {
-      _errorMessage = "Failed to delete \$filename: \$e";
+      _errorMessage = "Failed to delete $filename: $e";
     } finally {
       _deletingFile = null;
       notifyListeners();
