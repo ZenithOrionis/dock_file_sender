@@ -8,8 +8,14 @@ import 'multipart_progress_request.dart';
 class ApiService {
   Future<void> uploadFile(File file, {void Function(int, int)? onProgress}) async {
     final uri = Uri.parse(ApiConstants.upload);
+    final length = await file.length();
     
-    final request = MultipartProgressRequest('POST', uri, onProgress: onProgress);
+    final request = MultipartProgressRequest(
+      'POST', 
+      uri, 
+      onProgress: onProgress,
+      expectedTotalBytes: length,
+    );
     
     final multipartFile = await http.MultipartFile.fromPath(
       'file', 
@@ -57,6 +63,22 @@ class ApiService {
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete file: ${response.statusCode}');
+    }
+  }
+
+  Future<void> activateDevice(String contactNumber, String licenseKey) async {
+    final uri = Uri.parse(ApiConstants.deviceActivate);
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'contact_number': contactNumber,
+        'license_key': licenseKey,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Device activation failed: ${response.statusCode}, ${response.body}');
     }
   }
 }

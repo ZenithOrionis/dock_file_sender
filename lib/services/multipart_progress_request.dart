@@ -3,8 +3,9 @@ import 'package:http/http.dart' as http;
 
 class MultipartProgressRequest extends http.MultipartRequest {
   final void Function(int bytes, int totalBytes)? onProgress;
+  final int? expectedTotalBytes;
 
-  MultipartProgressRequest(String method, Uri url, {this.onProgress})
+  MultipartProgressRequest(String method, Uri url, {this.onProgress, this.expectedTotalBytes})
       : super(method, url);
 
   @override
@@ -12,7 +13,7 @@ class MultipartProgressRequest extends http.MultipartRequest {
     final byteStream = super.finalize();
     if (onProgress == null) return byteStream;
 
-    final total = contentLength;
+    final total = expectedTotalBytes ?? contentLength;
     int bytes = 0;
 
     final controller = StreamController<List<int>>(sync: true);

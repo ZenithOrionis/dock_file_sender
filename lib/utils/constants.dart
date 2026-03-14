@@ -4,4 +4,5 @@ class ApiConstants {
   static const String dockCheck = "$baseUrl/dock/check";
   static const String dockDownload = "$baseUrl/dock/download/";
   static const String dockDelete = "$baseUrl/dock/delete/";
+  static const String deviceActivate = "$baseUrl/device/activate";
 }
